@@ -1,0 +1,51 @@
+const LOGO=(fx,s)=>{var g=fx?'#0a9b72':'var(--c2)',p=fx?'#d6336c':'var(--c3)',k=fx?'#14122e':'var(--ink)',b=fx?'#ffffff':'var(--card)',sq=(x,yy,c)=>'<rect x="'+x+'" y="'+yy+'" width="9" height="9" rx="2" style="fill:'+c+'"/>';
+ return '<svg class="mark" viewBox="0 0 64 64" width="'+(s||42)+'" height="'+(s||42)+'" aria-hidden="true"><rect x="3" y="3" width="58" height="58" rx="14" style="fill:'+b+';stroke:'+k+';stroke-width:3"/>'+[9,21].map(x=>sq(x,22,g)+sq(x,34,g)).join("")+[34,46].map(x=>sq(x,22,p)+sq(x,34,p)).join("")+'<path d="M32 13v34" style="stroke:'+k+';stroke-width:2.5;stroke-linecap:round"/><circle cx="32" cy="53" r="3.5" style="fill:#ffe14d;stroke:'+k+';stroke-width:1.5"/></svg>'};
+var S={done:{}},T={};
+var NL=MODS.reduce((n,m)=>n+m.lessons.length,0),MAXXP=NL*20+ACT_IDS.length*10+MODS.length*30+100,STEP=Math.floor(MAXXP/20)*5;
+try{var raw=localStorage.getItem("signal-progress");if(raw)S=JSON.parse(raw)||S}catch(e){}
+function save(){try{localStorage.setItem("signal-progress",JSON.stringify(S))}catch(e){}}
+const $=i=>document.getElementById(i);
+var NAMES=["Curious","Explorer","Builder","Analyst","AI Pro"];
+function stats(){var xp=0,n=0,fs=0,total=0;MODS.forEach(m=>m.lessons.forEach((l,i)=>{total++;var d=S.done[m.id+"-"+i];if(d){n++;xp+=d;if(d===20)fs++}}));return{xp,n,fs,total}}
+const cnt=m=>m.lessons.filter((l,i)=>S.done[m.id+"-"+i]).length;
+const modDone=m=>cnt(m)===m.lessons.length;
+const NAV=[["index.html","Home"],["module1.html","How AI Works"],["module2.html","AI Tools"],["module3.html","Ethical AI"],["module4.html","AI in the World"],["dashboard.html","Dashboard"],["references.html","References"]];
+function head(){
+ var s=stats(),lv=Math.min(4,Math.floor(s.xp/STEP)),pg=document.body.dataset.page;
+ $("top").innerHTML='<div class="wrap bar"><a class="logo" href="index.html" aria-label="Both Sides of the Byte home">'+LOGO()+'<span>Both Sides of the Byte</span></a><nav aria-label="Main">'+NAV.map(n=>'<a href="'+n[0]+'"'+(n[0]===pg?' aria-current="page"':'')+'>'+n[1]+'</a>').join("")+'</nav><div class="lvl">Level '+(lv+1)+': '+NAMES[lv]+'</div><div class="xp" role="progressbar" aria-label="Experience points" aria-valuenow="'+s.xp+'" aria-valuemax="'+MAXXP+'"><i style="width:'+Math.min(100,s.xp/MAXXP*100)+'%"></i></div><div class="lvl">'+s.xp+' XP</div></div>';
+}
+function modCards(el){el.innerHTML=MODS.map((m,k)=>'<a class="cardlink" href="module'+(k+1)+'.html"><div class="mod" style="--mc:'+m.color+'"><h3>'+m.name+'</h3><p>'+m.blurb+'</p><p><strong>'+cnt(m)+' of '+m.lessons.length+' lessons done</strong></p><div class="pbar"><i style="width:'+cnt(m)/m.lessons.length*100+'%"></i></div></div></a>').join("")}
+function badges(el){var s=stats();el.innerHTML=BADGES.map(b=>{var on=b.m?modDone(MODS.find(m=>m.id===b.m)):b.l?b.l.every(k=>S.done[k]):s.fs>=b.f;return '<div class="badge'+(on?' on':'')+'"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 25l7 7 12-15" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>'+b.n+'</strong><small>'+(on?'Earned':b.d)+'</small></div>'}).join("")}
+const ICONS=['<circle cx="48" cy="48" r="10"/><circle cx="16" cy="20" r="7"/><circle cx="80" cy="20" r="7"/><circle cx="16" cy="76" r="7"/><circle cx="80" cy="76" r="7"/><path d="M22 24l20 17M74 24L54 41M22 72l20-17M74 72L54 55" fill="none" stroke="currentColor" stroke-width="3"/>','<rect x="14" y="22" width="68" height="46" rx="8" fill="none" stroke="currentColor" stroke-width="4"/><path d="M26 40l12 8-12 8M46 58h22" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M36 78h24" stroke="currentColor" stroke-width="4"/>','<path d="M48 10l30 12v22c0 20-13 34-30 42C31 78 18 64 18 44V22z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M34 46l10 10 20-22" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>'];
+ICONS.push('<circle cx="48" cy="48" r="34" fill="none" stroke="currentColor" stroke-width="4"/><ellipse cx="48" cy="48" rx="14" ry="34" fill="none" stroke="currentColor" stroke-width="3"/><path d="M14 48h68M20 30h56M20 66h56" fill="none" stroke="currentColor" stroke-width="3"/>');
+function modulePage(){
+ var id=document.body.dataset.mod,k=MODS.findIndex(m=>m.id===id),m=MODS[k],el=$("main");
+ el.innerHTML='<div class="phead" style="color:'+m.color+'"><svg viewBox="0 0 96 96" fill="currentColor" aria-hidden="true">'+ICONS[k]+'</svg><div style="color:var(--ink)"><h1>'+m.name+'</h1><p class="sub" style="margin:6px 0 0">'+m.blurb+' Answer each question to earn XP.</p><div class="pbar" id="mp" style="width:260px"></div><p class="note" id="mn"></p></div></div>'+
+ m.lessons.map((l,i)=>'<article class="lesson'+(S.done[id+"-"+i]?' done':'')+'" style="--mc:'+m.color+'" id="L'+i+'"><h2>'+l.t+'</h2>'+l.b.map(p=>'<p>'+p+'</p>').join("")+fig(id+"-"+i)+(DEEP[id+"-"+i]?'<details class="deep"><summary>Go deeper</summary><p>'+DEEP[id+"-"+i]+'</p></details>':'')+'<div class="q">'+l.q+'</div><div data-i="'+i+'">'+l.o.map((o,j)=>'<button class="ans" data-k="'+j+'">'+o+'</button>').join("")+'</div><div class="fb" aria-live="polite">'+(S.done[id+"-"+i]?'Completed ✓':'')+'</div></article>').join("")+
+ '<article class="lesson" id="quizbox" style="--mc:'+m.color+'"></article><p style="margin:20px 0 40px">'+(k<MODS.length-1?'<a class="btn" href="module'+(k+2)+'.html">Next module</a>':'<a class="btn" href="dashboard.html">See your dashboard</a>')+'</p>';
+ quizInit(m);const prog=()=>{$("mp").innerHTML='<i style="width:'+cnt(m)/m.lessons.length*100+'%;background:'+m.color+'"></i>';$("mn").textContent=cnt(m)+' of '+m.lessons.length+' lessons complete'+(modDone(m)?' — badge earned: '+m.badge+'!':'')};prog();
+ el.addEventListener("click",e=>{var b=e.target.closest(".ans");if(!b||b.classList.contains("ok"))return;
+  var g=b.parentElement,i=+g.dataset.i,l=m.lessons[i],key=id+"-"+i,fb=g.nextElementSibling;T[key]=(T[key]||0)+1;
+  if(+b.dataset.k===l.a){b.classList.add("ok");if(!S.done[key]){S.done[key]=T[key]===1?20:10;save();fb.textContent="Correct! +"+S.done[key]+" XP"}else fb.textContent="Correct!";g.parentElement.classList.add("done");head();prog();document.dispatchEvent(new Event("lessondone"))}
+  else{b.classList.add("no");fb.textContent="Not quite. Hint: "+l.w}});
+}
+function demo(){var sel="";const d=()=>{$("opts").innerHTML=WORDS.map(w=>'<button class="opt" aria-pressed="'+(sel===w[0])+'" data-w="'+w[0]+'"><span class="w">'+w[0]+'</span><span class="t"><i style="width:'+w[1]*2+'%"></i></span><span>'+w[1]+'%</span></button>').join("");$("pick").textContent=sel||"…"};d();$("opts").addEventListener("click",e=>{var b=e.target.closest(".opt");if(b){sel=b.dataset.w;d()}})}
+function ladder(){var s=stats(),lv=Math.min(4,Math.floor(s.xp/STEP));
+$("ladder").innerHTML='<div class="stairs">'+NAMES.map((n,i)=>'<div class="step'+(i<=lv?' on':'')+'" style="height:'+(60+i*26)+'px"><strong>'+n+'</strong><small>'+Math.round(i*STEP)+' XP</small></div>').join("")+'</div><h3 style="margin:18px 0 8px">XP by module</h3>'+MODS.map(m=>{var x=0,mx=m.lessons.length*20;m.lessons.forEach((l,i)=>x+=S.done[m.id+"-"+i]||0);return '<div style="display:grid;grid-template-columns:minmax(110px,150px) 1fr 70px;gap:10px;align-items:center;margin:6px 0"><span>'+m.name+'</span><div class="pbar" style="margin:0;--mc:'+m.color+'"><i style="width:'+x/mx*100+'%"></i></div><span>'+x+' / '+mx+'</span></div>'}).join("")+'<p class="note">Lessons give 20 XP (10 on a retry), activities 10, module quizzes 30, and the final exam 100. You gain a level every '+Math.round(STEP)+' XP, up to '+MAXXP+' XP.</p>'}
+function dash(){var s=stats();ladder();$("pct").textContent=Math.round(s.n/s.total*100)+"%";$("stat").textContent=s.n+" of "+s.total+" lessons done · "+s.xp+" XP · "+s.fs+" first-try answers";badges($("badges"));modCards($("mods"));
+ $("reset").onclick=()=>{if(confirm("Reset all progress?")){S={done:{}};save();location.reload()}}}
+S.quiz=S.quiz||{};S.act=S.act||{};
+const CHK={act:()=>ACT_IDS.every(k=>S.act[k]),quiz:()=>MODS.every(m=>(S.quiz[m.id]||0)>=4),final:()=>(S.final||0)>=12};
+function stats(){var xp=0,n=0,fs=0,total=0;MODS.forEach(m=>m.lessons.forEach((l,i)=>{total++;var d=S.done[m.id+"-"+i];if(d){n++;xp+=d;if(d===20)fs++}}));
+ ACT_IDS.forEach(k=>{if(S.act[k])xp+=10});MODS.forEach(m=>{if((S.quiz[m.id]||0)>=4)xp+=30});if((S.final||0)>=12)xp+=100;return{xp,n,fs,total}}
+function head(){
+ var s=stats(),lv=Math.min(4,Math.floor(s.xp/STEP)),pg=document.body.dataset.page,inMod=/^module\d/.test(pg);
+ const L=(h,t)=>'<a href="'+h+'"'+(h===pg?' aria-current="page"':'')+'>'+t+'</a>';
+ $("top").innerHTML='<div class="wrap bar"><a class="logo" href="index.html" aria-label="Both Sides of the Byte home">'+LOGO()+'<span>Both Sides of the Byte</span></a><nav aria-label="Main">'+L("index.html","Home")+'<details class="dd"><summary'+(inMod?' class="cur"':'')+'>Modules</summary><div class="menu">'+MODS.map((m,k)=>L("module"+(k+1)+".html",m.name)).join("")+'</div></details>'+L("activities.html","Activities")+L("glossary.html","Glossary")+L("dashboard.html","Dashboard")+L("teachers.html","Teachers &amp; Parents")+L("references.html","References")+'</nav><div class="lvl">Level '+(lv+1)+': '+NAMES[lv]+'</div><div class="xp" role="progressbar" aria-label="Experience points" aria-valuenow="'+s.xp+'" aria-valuemax="'+MAXXP+'"><i style="width:'+Math.min(100,s.xp/MAXXP*100)+'%"></i></div><div class="lvl">'+s.xp+' XP</div></div>';
+}
+function badges(el){var s=stats();el.innerHTML=BADGES.map(b=>{var on=b.m?modDone(MODS.find(m=>m.id===b.m)):b.l?b.l.every(k=>S.done[k]):b.chk?CHK[b.chk]():s.fs>=b.f;return '<div class="badge'+(on?' on':'')+'"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 25l7 7 12-15" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>'+b.n+'</strong><small>'+(on?'Earned':b.d)+'</small></div>'}).join("")}
+addEventListener("DOMContentLoaded",()=>{head();var pg=document.body.dataset.page;
+ if(pg==="index.html"){demo();modCards($("mods"))}
+ if(pg==="dashboard.html")dash();
+ if(document.body.dataset.mod)modulePage();
+ if(window.pageInit)pageInit(pg)});
